@@ -1,0 +1,18 @@
+# Windows executable files
+*.exe
+
+# macOS / Linux executable files
+TCP/tcpclient
+TCP/tcpserver
+UDP/udpclient
+UDP/udpserver
+
+# macOS system files
+.DS_Store
+
+# C++ object files
+*.o
+*.obj
+
+# Build directories
+build/
