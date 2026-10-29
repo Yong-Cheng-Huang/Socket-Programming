@@ -116,13 +116,12 @@ macOS 的 `g++` 可能實際使用 Apple Clang，也能編譯本範例。
 Server 啟動後顯示：
 
 ```text
-TCP Server listening on 127.0.0.1:8080...
+TCP Server waiting...
 ```
 
 Client 啟動後，輸入 `Hello socket`：
 
 ```text
-Connected to TCP Server!
 Enter one line: Hello socket
 Echo: Hello socket
 ```
@@ -130,7 +129,6 @@ Echo: Hello socket
 Server 顯示：
 
 ```text
-Client connected!
 Received: Hello socket
 ```
 

@@ -62,6 +62,14 @@ bool interrupted() {
 #endif
 }
 
+sockaddr_in localAddress() {
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(8080);
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    return address;
+}
+
 bool sendAll(Socket fd, const std::string& text) {
     if (text.size() > 1025) {
         return false;
@@ -138,10 +146,7 @@ int main() {
         return 1;
     }
 
-    sockaddr_in serverAddress{};
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(8080);
-    serverAddress.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    sockaddr_in serverAddress = localAddress();
 
     // 2. 連線到 Server
     if (connect(fd,
@@ -153,7 +158,6 @@ int main() {
         return 1;
     }
 
-    std::cout << "Connected to TCP Server!\n";
     std::cout << "Enter one line: ";
 
     std::string message;
@@ -166,7 +170,7 @@ int main() {
         return 1;
     }
 
-    // 3. 傳送訊息，使用換行作為結束符號
+    // 3. 傳送訊息
     success = sendAll(fd, message + "\n");
 
     // 4. 接收回覆

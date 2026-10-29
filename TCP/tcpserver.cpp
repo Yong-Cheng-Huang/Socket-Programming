@@ -62,6 +62,14 @@ bool interrupted() {
 #endif
 }
 
+sockaddr_in localAddress() {
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(8080);
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    return address;
+}
+
 // TCP：處理一次 send() 未送出全部資料的情況
 bool sendAll(Socket fd, const std::string& text) {
     if (text.size() > 1025) {
@@ -140,23 +148,8 @@ int main() {
         return 1;
     }
 
-#ifndef _WIN32
-    // macOS / Linux：方便重新啟動 Server
-    int reuse = 1;
-    if (setsockopt(serverFd, SOL_SOCKET, SO_REUSEADDR,
-                   &reuse, sizeof(reuse)) != 0) {
-        printError("setsockopt");
-        closeSocket(serverFd);
-        stopNetwork();
-        return 1;
-    }
-#endif
-
-    // 2. 綁定本機地址與 Port
-    sockaddr_in address{};
-    address.sin_family = AF_INET;
-    address.sin_port = htons(8080);
-    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    // 2. 綁定地址
+    sockaddr_in address = localAddress();
 
     if (bind(serverFd,
              reinterpret_cast<sockaddr*>(&address),
@@ -175,10 +168,9 @@ int main() {
         return 1;
     }
 
-    std::cout << "TCP Server listening on 127.0.0.1:8080..."
-              << std::endl;
+    std::cout << "TCP Server waiting..." << std::endl;
 
-    // 4. 接受 Client，取得通訊 Socket
+    // 4. 接受連線
     Socket clientFd = accept(serverFd, nullptr, nullptr);
 
     if (clientFd == BAD_SOCKET) {
@@ -188,20 +180,18 @@ int main() {
         return 1;
     }
 
-    std::cout << "Client connected!\n";
-
-    // 5. 接收一行訊息
+    // 5. 接收訊息
     std::string message;
     bool success = receiveLine(clientFd, message);
 
     if (success) {
         std::cout << "Received: " << message << '\n';
 
-        // 6. 原文回傳
+        // 6. 回傳原文
         success = sendAll(clientFd, message + "\n");
     }
 
-    // 7. 關閉通訊與監聽 Socket
+    // 7. 關閉兩個 Socket
     closeSocket(clientFd);
     closeSocket(serverFd);
     stopNetwork();
