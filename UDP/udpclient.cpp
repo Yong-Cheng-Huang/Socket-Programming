@@ -51,6 +51,14 @@ void printError(const char* operation) {
 #endif
 }
 
+sockaddr_in localAddress() {
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(8080);
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    return address;
+}
+
 int main() {
     if (!startNetwork()) {
         return 1;
@@ -65,15 +73,14 @@ int main() {
         return 1;
     }
 
-    sockaddr_in serverAddress{};
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(8080);
-    serverAddress.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    sockaddr_in serverAddress = localAddress();
 
-    std::cout << "Enter one line: ";
+    std::cout << "Enter a lowercase sentence: ";
 
     std::string message;
-    bool success = static_cast<bool>(std::getline(std::cin, message));
+    bool success = static_cast<bool>(
+        std::getline(std::cin, message)
+    );
 
     if (!success || message.size() > 1024) {
         std::cerr << "Input failed or exceeds 1024 bytes.\n";
@@ -82,14 +89,11 @@ int main() {
         return 1;
     }
 
-    // 2. 直接傳送資料報，不建立 TCP 式連線
+    // 2. 傳送小寫句子
     int length = static_cast<int>(message.size());
 
     auto sent = sendto(
-        fd,
-        message.data(),
-        length,
-        0,
+        fd, message.data(), length, 0,
         reinterpret_cast<sockaddr*>(&serverAddress),
         sizeof(serverAddress)
     );
@@ -106,19 +110,13 @@ int main() {
         return 1;
     }
 
-    std::cout << "Datagram sent. Waiting for reply..."
-              << std::endl;
-
-    // 3. 接收一個回覆資料報
+    // 3. 接收 Server 回傳的大寫句子
     char buffer[2048];
     sockaddr_in senderAddress{};
     AddressLength senderLength = sizeof(senderAddress);
 
     auto received = recvfrom(
-        fd,
-        buffer,
-        static_cast<int>(sizeof(buffer)),
-        0,
+        fd, buffer, static_cast<int>(sizeof(buffer)), 0,
         reinterpret_cast<sockaddr*>(&senderAddress),
         &senderLength
     );
@@ -126,14 +124,13 @@ int main() {
     success = (received >= 0);
 
     if (success) {
-        // 確認回覆來源為預期的 IP 與 Port
         success =
             senderAddress.sin_addr.s_addr ==
                 serverAddress.sin_addr.s_addr &&
             senderAddress.sin_port == serverAddress.sin_port;
 
         if (success) {
-            std::cout << "Echo: ";
+            std::cout << "Uppercase response: ";
             std::cout.write(buffer, received);
             std::cout << '\n';
         } else {

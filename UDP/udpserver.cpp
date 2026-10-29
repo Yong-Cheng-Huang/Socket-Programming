@@ -50,6 +50,14 @@ void printError(const char* operation) {
 #endif
 }
 
+sockaddr_in localAddress() {
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(8080);
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    return address;
+}
+
 int main() {
     if (!startNetwork()) {
         return 1;
@@ -64,11 +72,8 @@ int main() {
         return 1;
     }
 
-    // 2. 綁定本機地址與 Port
-    sockaddr_in address{};
-    address.sin_family = AF_INET;
-    address.sin_port = htons(8080);
-    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    // 2. 綁定地址
+    sockaddr_in address = localAddress();
 
     if (bind(fd,
              reinterpret_cast<sockaddr*>(&address),
@@ -79,19 +84,15 @@ int main() {
         return 1;
     }
 
-    std::cout << "UDP Server waiting on 127.0.0.1:8080..."
-              << std::endl;
+    std::cout << "UDP Server waiting..." << std::endl;
 
-    // 3. 接收一個資料報，取得 Client 地址
+    // 3. 接收 Client 傳送的句子
     char buffer[2048];
     sockaddr_in clientAddress{};
     AddressLength addressLength = sizeof(clientAddress);
 
     auto received = recvfrom(
-        fd,
-        buffer,
-        static_cast<int>(sizeof(buffer)),
-        0,
+        fd, buffer, static_cast<int>(sizeof(buffer)), 0,
         reinterpret_cast<sockaddr*>(&clientAddress),
         &addressLength
     );
@@ -107,12 +108,21 @@ int main() {
     std::cout.write(buffer, received);
     std::cout << '\n';
 
-    // 4. 使用收到的 Client 地址回覆
+    // 4. 將英文小寫轉換成大寫
+    for (int i = 0; i < received; i++) {
+        unsigned char ch =
+            static_cast<unsigned char>(buffer[i]);
+
+        buffer[i] = static_cast<char>(std::toupper(ch));
+    }
+
+    std::cout << "Uppercase: ";
+    std::cout.write(buffer, received);
+    std::cout << '\n';
+
+    // 5. 將大寫句子回傳 Client
     auto sent = sendto(
-        fd,
-        buffer,
-        static_cast<int>(received),
-        0,
+        fd, buffer, static_cast<int>(received), 0,
         reinterpret_cast<sockaddr*>(&clientAddress),
         addressLength
     );
@@ -127,7 +137,7 @@ int main() {
         }
     }
 
-    // 5. 關閉 Socket
+    // 6. 關閉 Socket
     closeSocket(fd);
     stopNetwork();
 

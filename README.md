@@ -139,21 +139,21 @@ Received: Hello socket
 Server 啟動後顯示：
 
 ```text
-UDP Server waiting on 127.0.0.1:8080...
+UDP Server waiting...
 ```
 
-Client 輸入 `Hello socket`：
+Client 輸入 `hello socket`：
 
 ```text
-Enter one line: Hello socket
-Datagram sent. Waiting for reply...
-Echo: Hello socket
+Enter a lowercase sentenc: hello socket
+Uppercase response: HELLO SOCKET
 ```
 
 Server 顯示：
 
 ```text
-Received: Hello socket
+Received: hello socket
+Uppercase: HELLO SOCKET
 ```
 
 ## 編譯選項
