@@ -6,10 +6,10 @@
 
 | 檔案 | 用途 |
 |---|---|
-| `tcpserver.cpp` | TCP Echo Server |
-| `tcpclient.cpp` | TCP Echo Client |
-| `udpserver.cpp` | UDP Echo Server |
-| `udpclient.cpp` | UDP Echo Client |
+| `tcpserver.cpp` | TCP Echo Server（接收訊息並原文回傳） |
+| `tcpclient.cpp` | TCP Echo Client（傳送訊息並接收原文回覆） |
+| `udpserver.cpp` | UDP Uppercase Server（接收小寫英文句子，轉成大寫後回傳） |
+| `udpclient.cpp` | UDP Uppercase Client（傳送小寫英文句子並接收大寫結果） |
 
 ## 編譯前準備
 
